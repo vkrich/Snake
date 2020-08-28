@@ -6,8 +6,8 @@ pygame.init()
 size = (25*25, 25*25)
 
 def spam_apple(snake):
-  a = random.randrange(0, size[0], BLOCK_SIZE)
-  b = random.randrange(0, size[1], BLOCK_SIZE)
+  a = random.randrange(0, size[0]-BLOCK_SIZE, BLOCK_SIZE)
+  b = random.randrange(0, size[1]-BLOCK_SIZE, BLOCK_SIZE)
   if (a, b) in snake:
     spam_apple(snake)
   return (a, b)
@@ -55,27 +55,32 @@ while True:
         dy = -BLOCK_SIZE
         dx = 0
     print(dx, dy, x, y)
+    
     x += dx
     y += dy   
     snake.append((x,y))
     snake = snake[-snakesize:]
 
     for i in range(len(snake)):
-        if snake[i][0] > size[0]:
-            snake[i] = (0, snake[i][1])
-            x = 0
+        if snake[i][0] > size[0] - BLOCK_SIZE:
+          print("LOOOOOOOOOOW")
+          snake[i] = (0, snake[i][1])
+          x = BLOCK_SIZE
 
         if snake[i][0] < 0:
-            snake[i] = (size[0]-BLOCK_SIZE, snake[i][1])
-            x = size[0]-BLOCK_SIZE
+          print("HIIIIIIIIIIIIIII")
+          snake[i] = (size[0] - BLOCK_SIZE, snake[i][1])
+          x = size[0] - BLOCK_SIZE
 
-        if snake[i][1] > size[1]:
-            snake[i] = (snake[i][0], 0)
-            y = 0
+        if snake[i][1] > size[1] - BLOCK_SIZE:
+          print("HIIIIIIIIIIIIIII")
+          snake[i] = (snake[i][0], 0)
+          y = BLOCK_SIZE
 
         if snake[i][1] < 0:
-            snake[i] = (snake[i][0], size[1])
-            y = size[1]-3*BLOCK_SIZE
+          print("LOOOOOOOOOOW")
+          snake[i] = (snake[i][0], size[1]- BLOCK_SIZE)
+          y = size[1] - BLOCK_SIZE
 
     if snake[-1][0] == apple_x and snake[-1][1] == apple_y:
         snakesize+=1
