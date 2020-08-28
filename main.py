@@ -5,6 +5,13 @@ pygame.init()
 
 size = (25*25, 25*25)
 
+def spam_apple(snake):
+  a = random.randrange(0, size[0], BLOCK_SIZE)
+  b = random.randrange(0, size[1], BLOCK_SIZE)
+  if (a, b) in snake:
+    spam_apple(snake)
+  return (a, b)
+
 #colors
 WHITE = (255, 255, 255)
 BLUE = (204, 255, 255)
@@ -12,29 +19,28 @@ BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 
 BLOCK_SIZE = 25
-dx, dy = 0, -BLOCK_SIZE
+dx, dy = 0, 0
 
+x = random.randrange(BLOCK_SIZE, size[0], BLOCK_SIZE)
+y = random.randrange(BLOCK_SIZE, size[1], BLOCK_SIZE)
+snake = [(x, y)]
+snakesize = len(snake)
 
-x = 25#random.randrange(0, size[0], BLOCK_SIZE)
-y = 150#random.randrange(0, size[1], BLOCK_SIZE)
+apple_x, apple_y = spam_apple(snake)
 
-apple_x = 0 #random.randrange(0, size[0], BLOCK_SIZE)
-apple_y = 300 #random.randrange(0, size[1], BLOCK_SIZE)
+spam_apple(snake)
 # TO DO apple != x y
 
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
 
-snake = [(x, y), (x - BLOCK_SIZE, y)]
-
-while True:
-
+while True:    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
-
-    snake = [(i + dx, j + dy) for i, j in snake]
     keys = pygame.key.get_pressed()
+
+    snake = [(i, j) for i, j in snake]    
 
     if keys[pygame.K_d]:
         dx = BLOCK_SIZE
@@ -48,37 +54,39 @@ while True:
     if keys[pygame.K_w]:
         dy = -BLOCK_SIZE
         dx = 0
+    print(dx, dy, x, y)
+    x += dx
+    y += dy   
+    snake.append((x,y))
+    snake = snake[-snakesize:]
 
     for i in range(len(snake)):
         if snake[i][0] > size[0]:
             snake[i] = (0, snake[i][1])
+            x = 0
+
         if snake[i][0] < 0:
-            snake[i] = (size[0], snake[i][1])
+            snake[i] = (size[0]-BLOCK_SIZE, snake[i][1])
+            x = size[0]-BLOCK_SIZE
 
         if snake[i][1] > size[1]:
             snake[i] = (snake[i][0], 0)
+            y = 0
+
         if snake[i][1] < 0:
             snake[i] = (snake[i][0], size[1])
+            y = size[1]-3*BLOCK_SIZE
 
     if snake[-1][0] == apple_x and snake[-1][1] == apple_y:
-        if dx>0 or dy>0:
-          snake.append((snake[-1][0] + dx, snake[-1][1] + dy))
-        else:
-          snake.append((snake[-1][0] - dx, snake[-1][1] - dy))
-        
-        print(snake, apple_x, apple_y, dx)
-        #apple_x = random.randrange(0, size[0], BLOCK_SIZE)
-        #apple_y = random.randrange(0, size[1], BLOCK_SIZE)
-        apple_y += 25
+        snakesize+=1
+        apple_x, apple_y = spam_apple(snake)
 
-    screen.fill((180, 0, 180))
+    screen.fill((0, 0, 180))
 
     [pygame.draw.rect(screen, BLACK, (i, j, BLOCK_SIZE, BLOCK_SIZE)) for i, j in snake]
     pygame.draw.rect(screen, WHITE, (snake[-1][0], snake[-1][1], BLOCK_SIZE, BLOCK_SIZE)) 
     pygame.draw.rect(screen, GREEN, (apple_x, apple_y, BLOCK_SIZE, BLOCK_SIZE))
 
-
-    #print(snake)
-    clock.tick(1)
-
+    print(snake)
+    clock.tick(10)
     pygame.display.flip()
