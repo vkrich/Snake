@@ -62,29 +62,28 @@ while True:
     snake = snake[-snakesize:]
 
     for i in range(len(snake)):
-        if snake[i][0] > size[0] - BLOCK_SIZE:
-          print("LOOOOOOOOOOW")
+        if snake[i][0] > size[0] - BLOCK_SIZE:          
           snake[i] = (0, snake[i][1])
           x = BLOCK_SIZE
 
-        if snake[i][0] < 0:
-          print("HIIIIIIIIIIIIIII")
+        if snake[i][0] < 0:          
           snake[i] = (size[0] - BLOCK_SIZE, snake[i][1])
           x = size[0] - BLOCK_SIZE
 
-        if snake[i][1] > size[1] - BLOCK_SIZE:
-          print("HIIIIIIIIIIIIIII")
+        if snake[i][1] > size[1] - BLOCK_SIZE:          
           snake[i] = (snake[i][0], 0)
           y = BLOCK_SIZE
 
-        if snake[i][1] < 0:
-          print("LOOOOOOOOOOW")
+        if snake[i][1] < 0:          
           snake[i] = (snake[i][0], size[1]- BLOCK_SIZE)
           y = size[1] - BLOCK_SIZE
 
     if snake[-1][0] == apple_x and snake[-1][1] == apple_y:
         snakesize+=1
         apple_x, apple_y = spam_apple(snake)
+    
+    if len(snake) != len(set(snake)):
+      break #game_over
 
     screen.fill((0, 0, 180))
 
