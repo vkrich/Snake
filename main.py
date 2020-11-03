@@ -1,7 +1,28 @@
 import pygame
 import sys
 import random
-import sqllite3
+import sqlite3
+
+class Background(pygame.sprite.Sprite):
+  def __init__(self, image_file, location):
+      pygame.sprite.Sprite.__init__(self) 
+      self.image = pygame.image.load(image_file)
+      self.rect = self.image.get_rect()
+      self.rect.left, self.rect.top = location
+
+def table_creation():
+  conn = sqlite3.connect("Snake.db") 
+  # или :memory: чтобы сохранить в RAM
+  cursor = conn.cursor()
+  
+  # Создание таблицы в БД для хранения очков пользователя
+  cursor.execute("""CREATE TABLE players (
+                  player_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  player_name text NOT NULL,
+                  scores INTEGER 
+                );
+                """)
+  conn.commit()              
 
 pygame.init()
 
@@ -40,6 +61,9 @@ while True:
         if event.type == pygame.QUIT:
             sys.exit()
     keys = pygame.key.get_pressed()
+
+    BackGround = Background('grass.png', [0,0])
+    screen.blit(BackGround.image, BackGround.rect)
 
     #snake = [(i, j) for i, j in snake]    
     
@@ -92,12 +116,14 @@ while True:
     if len(snake) != len(set(snake)):
       break #game_over
 
-    screen.fill((0, 0, 180))
-
-    [pygame.draw.rect(screen, RED, (i, j, BLOCK_SIZE, BLOCK_SIZE)) for i, j in snake]
+    
+    [pygame.draw.rect(screen, BLACK, (i, j, BLOCK_SIZE, BLOCK_SIZE)) for i, j in snake]
     pygame.draw.rect(screen, WHITE, (snake[-1][0], snake[-1][1], BLOCK_SIZE, BLOCK_SIZE)) 
-    pygame.draw.rect(screen, GREEN, (apple_x, apple_y, BLOCK_SIZE, BLOCK_SIZE))
-    text = scores_text.render(f"Scores: {scores_points}", 0, GREEN) 
+    pygame.draw.rect(screen, RED, (apple_x, apple_y, BLOCK_SIZE, BLOCK_SIZE))
+    text = scores_text.render(f"Scores: {scores_points}", 0, RED) 
+
+    input_box = pygame.Rect(100, 100, 140, 32)
+
     screen.blit(text, (10, 25))
     clock.tick(10)
     pygame.display.flip()
