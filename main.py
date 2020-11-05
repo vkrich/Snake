@@ -23,21 +23,6 @@ class Background(pygame.sprite.Sprite):
     self.rect.left, self.rect.top = location
 
 
-def table_creation():
-  # connect to db
-  conn = sqlite3.connect("Snake.db")   
-  cursor = conn.cursor()  
-  # Create table for saving players scores
-  cursor.execute("""CREATE TABLE players (
-                  player_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  player_name text NOT NULL,
-                  scores INTEGER 
-                );
-                """)
-  # commit changes in db        
-  conn.commit()  
-
-
 def spam_apple(snake, stones):
   '''Function generate coords for apple'''
   a = random.randrange(0, size[0]-BLOCK_SIZE, BLOCK_SIZE)
@@ -55,13 +40,18 @@ def game(screen):
   # Create coords for snake, stones and apple
   x = random.randrange(BLOCK_SIZE, size[0]-BLOCK_SIZE*2, BLOCK_SIZE)
   y = random.randrange(BLOCK_SIZE, size[1]-BLOCK_SIZE*2, BLOCK_SIZE)
-  snake = []
-  snake.append((x, y))
-  snakesize = len(snake)
   stones = []
   for i in range(250, 301, BLOCK_SIZE):
     for j in range(250, 301, BLOCK_SIZE):
       stones.append((i, j))
+
+  while (x, y) in stones:
+    x = random.randrange(BLOCK_SIZE, size[0]-BLOCK_SIZE*2, BLOCK_SIZE)
+    y = random.randrange(BLOCK_SIZE, size[1]-BLOCK_SIZE*2, BLOCK_SIZE)
+
+  snake = []
+  snake.append((x, y))
+  snakesize = len(snake)  
 
   apple_x, apple_y = spam_apple(snake, stones)
   # variables for texting scores
@@ -143,6 +133,65 @@ def game(screen):
     pygame.display.flip()
 
 
+def table_creation():
+  # connect to db
+  conn = sqlite3.connect("Snake.db")   
+  cursor = conn.cursor()  
+  # Create table for saving players scores
+  cursor.execute("""CREATE TABLE players (
+                  player_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  player_name text NOT NULL,
+                  scores INTEGER 
+                );
+                """)
+  # commit changes in db        
+  conn.commit()  
+  return conn
+
+
+def insert_user_information(data):
+  # TO DO if data[0] (user) in DB use +=
+  # connect to db
+  conn = sqlite3.connect("Snake.db")   
+  cursor = conn.cursor()  
+  # Insert information in table
+  cursor.execute("INSERT INTO players(player_name, scores) VALUES (?,?)", data)
+  # commit changes in db        
+  conn.commit()
+  return conn
+
+
+def show_players_table(screen):  
+  conn = sqlite3.connect("Snake.db")   
+  cursor = conn.cursor()  
+  # Take info from players table
+  background_image = Background('space.png', [0, 0])
+  while True:    
+    for event in pygame.event.get():
+      if event.type == pygame.QUIT:
+        sys.exit()
+      elif event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.KEYDOWN:      
+        return
+          
+    screen.blit(background_image.image, background_image.rect)
+    font = pygame.font.SysFont(None, 80)
+    text_surf = font.render("TOP RECORDS:", True, (255, 0, 0))    
+    screen.blit(text_surf, (20, 25))
+    i = 100
+    for row in cursor.execute("SELECT * from players ORDER BY scores"):  
+      text_info_scores = pygame.font.SysFont('serif', 38)
+      current_user_info = f"{row[0]}     {row[1]}     {row[2]}"
+      text_info_scores = text_info_scores.render(current_user_info, 0, RED)
+      screen.blit(text_info_scores, (100, i))
+      i += 30
+      if i >= size[1]-BLOCK_SIZE*3:
+        break
+    font = pygame.font.SysFont(None, 50)
+    text_continue = font.render("Click or press any key to go back", True, (255, 0, 0))    
+    screen.blit(text_continue, (20, size[1]-BLOCK_SIZE*3))
+    
+    pygame.display.flip()
+
 def user_creation(screen, scores):
   input_text = ""
   input_active = True
@@ -155,27 +204,32 @@ def user_creation(screen, scores):
         input_text = ""
       elif event.type == pygame.KEYDOWN and input_active:
         if event.key == pygame.K_RETURN:
-          input_active = False
-          # GET input text in DB with scores, input_text
+          input_active = False 
+          return insert_user_information((input_text, scores))        
         elif event.key == pygame.K_BACKSPACE:
           input_text =  input_text[:-1]
+        elif event.key == pygame.K_TAB:
+          show_players_table(screen)  
         else:
           input_text += event.unicode
 
     game_over_background = Background('game_over_cut.jpeg', [0, 0])
     screen.blit(game_over_background.image, game_over_background.rect)
-    text_scores = pygame.font.SysFont(None, 100).render(f"Enter your nick:", 0, RED) 
+    text_scores = pygame.font.SysFont(None, 100).render("Enter your nick:", 0, RED) 
     screen.blit(text_scores, (10, 400))   
+    text_info_scores = pygame.font.SysFont('serif', 38).render("Press <TAB> to see Scores Table.", 0, RED) 
+    screen.blit(text_info_scores, (20, 40)) 
     
     font = pygame.font.SysFont(None, 100)
     text_surf = font.render(input_text, True, (255, 0, 0))    
-    
-    screen.blit(text_surf, (10, 450))
+    screen.blit(text_surf, (20, 450))
     pygame.display.flip()
 
 # start
 pygame.init()
 screen = pygame.display.set_mode(size)
 taken_scores = game(screen)
+# table_creation()
 user_creation(screen, taken_scores)
+# countinue screen, cycle
 pygame.quit()
