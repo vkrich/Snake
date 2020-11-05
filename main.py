@@ -186,6 +186,7 @@ def show_players_table(screen):
       i += 30
       if i >= size[1]-BLOCK_SIZE*3:
         break
+
     font = pygame.font.SysFont(None, 50)
     text_continue = font.render("Click or press any key to go back", True, (255, 0, 0))    
     screen.blit(text_continue, (20, size[1]-BLOCK_SIZE*3))
@@ -225,11 +226,41 @@ def user_creation(screen, scores):
     screen.blit(text_surf, (20, 450))
     pygame.display.flip()
 
-# start
-pygame.init()
-screen = pygame.display.set_mode(size)
-taken_scores = game(screen)
-# table_creation()
-user_creation(screen, taken_scores)
-# countinue screen, cycle
-pygame.quit()
+
+def continue_screen(screen):
+  background_image = Background('space.png', [0, 0])  
+  while True:    
+    for event in pygame.event.get():
+      if event.type == pygame.QUIT:
+        sys.exit()
+      elif event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_ESCAPE or event.key == pygame.K_n:
+          return False
+        else:   
+          return True
+    screen.blit(background_image.image, background_image.rect)
+    text_continue = pygame.font.SysFont(None, 80).render("DO YOU WANT", 0, RED) 
+    screen.blit(text_continue, (50, size[1] - BLOCK_SIZE*20))
+    text_continue = pygame.font.SysFont(None, 80).render("TO CONTINUE?", 0, RED) 
+    screen.blit(text_continue, (95, size[1] - BLOCK_SIZE*18))
+    text_continue = pygame.font.SysFont(None, 60).render("Press ESC or N for QUIT", 0, RED) 
+    screen.blit(text_continue, (50, size[1] - BLOCK_SIZE*7))
+    text_continue = pygame.font.SysFont(None, 60).render("Press ANY key to continue", 0, RED) 
+    screen.blit(text_continue, (50, size[1] - BLOCK_SIZE*4))
+   
+    pygame.display.flip()
+
+
+def main_game():  
+  pygame.init()
+  starter = True
+  while starter:    
+    screen = pygame.display.set_mode(size)
+    taken_scores = game(screen)
+    # table_creation()
+    user_creation(screen, taken_scores)
+    starter = continue_screen(screen)    
+  pygame.quit()
+
+# if __name__ == '__main__':
+main_game()
