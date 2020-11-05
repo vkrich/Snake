@@ -10,7 +10,11 @@ BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 # all is divided by blocksize
-BLOCK_SIZE = 25
+with open('config.ini', 'r') as f:
+  try:
+    BLOCK_SIZE = int(f.read().split('=')[1].strip())
+  except TypeError:
+    print("Wrong input data for BLOCK_SIZE")
 # size of playground
 size = (BLOCK_SIZE*BLOCK_SIZE, BLOCK_SIZE*BLOCK_SIZE)
 
@@ -68,6 +72,8 @@ def game(screen):
         sys.exit()    
       elif event.type == pygame.KEYDOWN:
         pygame.display.flip()
+        if event.key == pygame.K_TAB:
+          show_players_table(screen)
 
     # Background drawing from file
     BackGround = Background('grass.png', [0, 0])
@@ -122,8 +128,10 @@ def game(screen):
       scores_points+=1
       apple_x, apple_y = spam_apple(snake, stones)   
     
+    # game over
     if len(snake) != len(set(snake)) or set(snake) & set(stones):
       return scores_points
+
     # draw stones, snake, head snake, apple
     [pygame.draw.rect(screen, BLACK, (i, j, BLOCK_SIZE, BLOCK_SIZE)) for i, j in stones]
     [pygame.draw.rect(screen, BLACK, (i, j, BLOCK_SIZE, BLOCK_SIZE)) for i, j in snake]
@@ -152,16 +160,28 @@ def table_creation():
   conn.commit()  
   return conn
 
+def user_check(conn, data):
+  cursor = conn.cursor()  
+  for row in cursor.execute("SELECT * from players ORDER BY scores desc"):
+    if row[1] == data[0]:
+      sql = '''UPDATE players 
+              set scores = ?
+              where player_name = ?'''
+      cursor.execute(sql, [row[2]+data[1], data[0]])
+      conn.commit()
+      return False
+  return True
+
 
 def insert_user_information(data):
-  # TO DO if data[0] (user) in DB use +=
   # connect to db
-  conn = sqlite3.connect("Snake.db")   
+  conn = sqlite3.connect("Snake.db") 
   cursor = conn.cursor()  
-  # Insert information in table
-  cursor.execute("INSERT INTO players(player_name, scores) VALUES (?,?)", data)
-  # commit changes in db        
-  conn.commit()
+  if user_check(conn, data):
+    # Insert information in table
+    cursor.execute("INSERT INTO players(player_name, scores) VALUES (?,?)", data)
+    # commit changes in db        
+    conn.commit()
   return conn
 
 
@@ -174,7 +194,7 @@ def show_players_table(screen):
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         sys.exit()
-      elif event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.KEYDOWN:      
+      elif event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.KEYDOWN:     
         return
           
     screen.blit(background_image.image, background_image.rect)
@@ -198,8 +218,7 @@ def show_players_table(screen):
 
     font = pygame.font.SysFont(None, 50)
     text_continue = font.render("Click or press any key to go back", True, (255, 0, 0))    
-    screen.blit(text_continue, (20, size[1]-BLOCK_SIZE*3))
-    
+    screen.blit(text_continue, (20, size[1]-BLOCK_SIZE*3))    
     pygame.display.flip()
 
 def user_creation(screen, scores):
