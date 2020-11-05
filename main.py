@@ -66,6 +66,9 @@ def game(screen):
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         sys.exit()    
+      elif event.type == pygame.KEYDOWN:
+        pygame.display.flip()
+
     # Background drawing from file
     BackGround = Background('grass.png', [0, 0])
     screen.blit(BackGround.image, BackGround.rect)
@@ -99,7 +102,7 @@ def game(screen):
     for i in range(len(snake)):
       if snake[i][0] > size[0] - BLOCK_SIZE:          
         snake[i] = (0, snake[i][1])
-        x = BLOCK_SIZE
+        x = 0
 
       if snake[i][0] < 0:          
         snake[i] = (size[0] - BLOCK_SIZE, snake[i][1])
@@ -107,11 +110,12 @@ def game(screen):
 
       if snake[i][1] > size[1] - BLOCK_SIZE:          
         snake[i] = (snake[i][0], 0)
-        y = BLOCK_SIZE
+        y = 0
 
       if snake[i][1] < 0:          
-        snake[i] = (snake[i][0], size[1]- BLOCK_SIZE)
+        snake[i] = (snake[i][0], size[1]-BLOCK_SIZE)
         y = size[1] - BLOCK_SIZE
+
     # snake ate apple
     if snake[-1][0] == apple_x and snake[-1][1] == apple_y:
       snakesize+=1
@@ -178,12 +182,17 @@ def show_players_table(screen):
     text_surf = font.render("TOP RECORDS:", True, (255, 0, 0))    
     screen.blit(text_surf, (20, 25))
     i = 100
-    for row in cursor.execute("SELECT * from players ORDER BY scores"):  
+    j = 1
+    space=' '
+    for row in cursor.execute("SELECT * from players ORDER BY scores desc"):  
       text_info_scores = pygame.font.SysFont('serif', 38)
-      current_user_info = f"{row[0]}     {row[1]}     {row[2]}"
+      if j>9:
+        space=''
+      current_user_info = f"{j}{space}    {row[1]}     {row[2]}"
       text_info_scores = text_info_scores.render(current_user_info, 0, RED)
       screen.blit(text_info_scores, (100, i))
       i += 30
+      j += 1
       if i >= size[1]-BLOCK_SIZE*3:
         break
 
