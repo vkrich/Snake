@@ -1,7 +1,12 @@
-import pygame
 import sys
 import random
 import sqlite3
+import pygame
+from PyQt5.QtWidgets import (QWidget, QToolTip,
+    QPushButton, QApplication, QLabel, QMainWindow)
+from PyQt5.QtGui import (QFont, QIcon, QPixmap)
+from PyQt5.QtCore import QCoreApplication
+
 
 # colors
 WHITE = (255, 255, 255)
@@ -277,8 +282,6 @@ def continue_screen(screen):
     screen.blit(text_continue, (50, size[1] - BLOCK_SIZE*4))
    
     pygame.display.flip()
-
-
 def main_game():  
   pygame.init()
   starter = True
@@ -289,6 +292,89 @@ def main_game():
     user_creation(screen, taken_scores)
     starter = continue_screen(screen)    
   pygame.quit()
+  
 
-# if __name__ == '__main__':
-main_game()
+class MenuWindow(QMainWindow):
+  def btn1Clicked(self):
+      self.hide()
+      main_game()
+      
+  def btn2Clicked(self):
+      #with open("README.md", r) as f:      
+      self.btn1.hide()
+      self.btn2.hide()
+      
+      text = ""
+      with open('help.txt', 'r') as f:
+          for i in f:
+              text += i
+      
+      self.label_help = QLabel(text, self)      
+      self.label_help.move(BLOCK_SIZE**2//2-200, 20)
+      self.label_help.resize(BLOCK_SIZE**2, BLOCK_SIZE**2-200)
+      self.label_help.setFont(QFont('SansSerif', 20))
+      self.label_help.setStyleSheet('color: red')
+      self.label_help.show()
+      
+      self.btn3 = QPushButton('Close', self)
+      self.btn3.setFont(QFont('SansSerif', 15))
+      self.btn3.move(BLOCK_SIZE**2//2-100, 475)
+      self.btn3.resize(200, 50)
+      self.btn3.clicked.connect(self.btn3Clicked)
+      self.btn3.show()
+      #main_game()
+      
+  def btn3Clicked(self):      
+      self.btn3.hide()
+      self.label_help.hide()
+      self.btn1.show()
+      self.btn2.show()
+    
+  def __init__(self): 
+    super().__init__() 
+
+    self.acceptDrops()
+    self.setWindowIcon(QIcon("snake_icon.png"))     
+    # set the title 
+    self.setWindowTitle("Snake")    
+
+    # setting  the geometry of window 
+    self.setGeometry(0, 0, 625, 567) 
+    w = QWidget()    
+
+    # creating label 
+    self.label = QLabel(self) 
+    self.btn1 = QPushButton('New game', self)
+    self.btn1.setFont(QFont('SansSerif', 15))
+    self.btn1.move(BLOCK_SIZE**2//2-100, 200)
+    self.btn1.resize(200, 50)
+    self.btn1.setToolTip('Click for start \bNew game\b')
+    self.btn1.clicked.connect(self.btn1Clicked)
+    #self.btn1.clicked.connect(main_game())
+    self.btn2 = QPushButton('Help', self)
+    self.btn2.setFont(QFont('SansSerif', 15))
+    self.btn2.move(BLOCK_SIZE**2//2-100, 275)
+    self.btn2.resize(200, 50)
+    self.btn2.clicked.connect(self.btn2Clicked)
+    # loading image 
+    self.pixmap = QPixmap('snake.jpg') 
+
+    # adding image to label 
+    self.label.setPixmap(self.pixmap) 
+
+    # Optional, resize label to image size 
+    self.label.resize(self.pixmap.width(), 
+                      self.pixmap.height()) 
+    # show all the widgets 
+    self.show() 
+
+if __name__ == '__main__':
+  #
+  # create pyqt5 app 
+  App = QApplication(sys.argv) 
+    
+  # create the instance of our Window 
+  window = MenuWindow() 
+    
+  # start the app 
+  sys.exit(App.exec()) 
